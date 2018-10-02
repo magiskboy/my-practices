@@ -7,10 +7,10 @@ import (
 	"log"
 	"math/rand"
 	"net/http"
+	"os"
 	"strconv"
 )
 
-// Struture Book (Model)
 type Book struct {
 	ID     string  `json:"id"`
 	Isbn   string  `json:"isbn"`
@@ -18,22 +18,18 @@ type Book struct {
 	Author *Author `json:"author"`
 }
 
-// Struture Author
 type Author struct {
 	Firstname string `json:"firstname"`
 	Lastname  string `json:"lastname"`
 }
 
-// Init books var as slice of Book struct
 var books []Book
 
-// Get all books
 func getBooks(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(books)
 }
 
-// Get Single book
 func getBook(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	params := mux.Vars(r)
@@ -47,7 +43,6 @@ func getBook(w http.ResponseWriter, r *http.Request) {
 
 }
 
-// Create New book
 func createBook(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	var book Book
@@ -57,7 +52,6 @@ func createBook(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(book)
 }
 
-// Update detail book
 func updateBook(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	params := mux.Vars(r)
@@ -76,7 +70,6 @@ func updateBook(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(books)
 }
 
-// Delete book by index in DB, not ID
 func deleteBook(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	params := mux.Vars(r)
@@ -90,10 +83,10 @@ func deleteBook(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	// Init Router
+	host := os.Args[1]
+	port := os.Args[2]
 	r := mux.NewRouter()
 
-	// Mock data - @todo - implement DB
 	books = append(books, Book{ID: "1", Isbn: "451313", Title: "Programming Python",
 		Author: &Author{Firstname: "Mark", Lastname: "Luzt"}})
 	books = append(books, Book{ID: "2", Isbn: "212313", Title: "Introduce Golang",
@@ -105,12 +98,11 @@ func main() {
 	books = append(books, Book{ID: "5", Isbn: "878615", Title: "An Introduce to Statistics",
 		Author: &Author{Firstname: "Keone", Lastname: "Hon"}})
 
-	// Router handler - Endpoint
 	r.HandleFunc("/api/books", getBooks).Methods("GET")
 	r.HandleFunc("/api/books/{id}", getBook).Methods("GET")
 	r.HandleFunc("/api/books", createBook).Methods("POST")
 	r.HandleFunc("/api/books/{id}", updateBook).Methods("PUT")
 	r.HandleFunc("/api/books/{id}", deleteBook).Methods("DELETE")
-	fmt.Println("Server running on localhost, port 8000,...")
-	log.Fatal(http.ListenAndServe(":8000", r))
+	fmt.Println("Server running on " + host + ", port " + port + "...")
+	log.Fatal(http.ListenAndServe(host+":"+port, r))
 }
