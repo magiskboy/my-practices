@@ -1,14 +1,12 @@
 #include <iostream>
 
-using namespace std;
-
 int fib( int n ){
 	int a = 0, b = 1, c;
-	for ( int i = 1; i < n; c = a + b, a = b, b = c, i++ );
-	return c;
+	for ( int i = 1; i < n - 1; b += a, a = b - a, i++ );
+	return b;
 }
 
 int main(){
-	cout << fib(10);	
+	std::cout << fib(10) << std::endl;	
 	return 0;
 }
