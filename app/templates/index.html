@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta language="en">
+    <meta charset="UTF-8">
+    <link rel="icon" href="app/templates/favicon.png">
+    <title>Short URL</title>
+    <style>
+        .wrapper {
+            
+        }
+
+        .box {
+            width: 600px;
+            display: flex;
+            flex-direction: column;
+            margin: 0 auto;
+            align-content: center;
+            justify-content: center;
+        }
+
+        #url, #urlCode {
+            padding: 10px 5px;
+            margin: 5px 0 7px 0;
+        }
+
+        .box button {
+            height: 25px;
+            background-color: hsl(0, 0%, 0%);
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="wrapper">
+        <h2>Shortcut link</h2>
+        <div class="box">
+            <input type="text" id="url" placeholder="google.com">
+            <input type="text"id="urlCode" placeholder="http://shortcutlink.com/_/asdh5s" />
+            <button type="button" onclick="createShortcutClicked()">Get</button>
+        </div>
+    </div>
+    <script type="text/javascript">
+        const copyToClipboard = str => {
+            const el = document.createElement('textarea');
+            el.value = str;
+            el.setAttribute('readonly', '');
+            el.style.position = 'absolute';
+            el.style.left = '-9999px';
+            document.body.appendChild(el);
+            el.select();
+            document.execCommand('copy');
+            document.body.removeChild(el);
+        };
+
+        function createShortcutClicked() {
+            const payload = {
+                url: document.getElementById("url").value
+            }
+            let xhttp = new XMLHttpRequest();
+            xhttp.onreadystatechange = function() {
+                if (this.readyState == 4 && this.status == 201) {
+                    const payload = JSON.parse(xhttp.responseText)
+                    document.getElementById("urlCode").value = payload.short_url
+                    copyToClipboard(payload.short_url)
+                }
+            };
+            xhttp.open("POST", window.location.origin + "/shortcut", true);
+            xhttp.setRequestHeader("Content-Type", "application/json");
+            xhttp.send(JSON.stringify(payload));
+        }
+    </script>
+</body>
+</html>
