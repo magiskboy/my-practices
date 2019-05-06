@@ -77,6 +77,11 @@ int ls_handler(const int connect_socket) {
     return 0;
 }
 
+void download_handler(const int connect_socket, const char* filename) {
+    printf("%s\n", filename);
+
+}
+
 void default_handler(const int connect_socket) {
     char buf[FILENAME_BUFFER];
     buf[0] = DONE_TAG;
@@ -143,6 +148,7 @@ int main(int argc, char* argv[]) {
                         break;
 
                     case DOWNLOAD_TAG:
+                        download_handler(connect_socket, buf);
                         break;
 
                     default:

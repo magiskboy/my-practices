@@ -79,11 +79,16 @@ int main(int argc, char* argv[]) {
         printf("[COMMAND]: ");
         scanf("%s", message);
 
-        char command[1];
-        command[0] = 0;
+        char command[FILENAME_BUFFER+2];
+        memset(command, 0, sizeof(command));
         if (strcmp(message, "@ls") == 0) command[0] = LS_TAG;
-        else if (strcmp(message, "@download") == 0) command[0] = DOWNLOAD_TAG;
-        else continue;
+        else{
+            command[0] = DOWNLOAD_TAG;
+            command[1] = '\0';
+            strcat(command, message);
+            printf("%s\n", command);
+            continue;
+        }
 
         if (write(connect_socket, command, sizeof(command)) < 0) {
             perror("[ERROR]");
