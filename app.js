@@ -6,10 +6,11 @@ var imageUrls = [
   './images/4.jpeg',
   './images/5.jpeg',
 ];
+var imageFavoriteUrls = [];
 var isShowMore = true;
 var headImage = 0;
+updateListImagesView(imageUrls);
 
-updateShowListImage(imageUrls);
 
 function getSubImages(images, start, size) {
   if (start + size > images.length) {
@@ -31,7 +32,66 @@ function rightRotateImageList(images) {
   return getSubImages(images, headImage, 5);
 }
 
-function updateShowListImage(showImages) {
+function addFavoriteImage(url) {
+  if (!imageFavoriteUrls.includes(url)) {
+    imageFavoriteUrls.push(url);
+    updateFavoriteImagesView(imageFavoriteUrls);
+  }
+}
+
+function showImageView(target) {
+  let imageUrl = target.getAttribute('src');
+  let options = 'width=650,height=450,resizable=yes,scrollbars=yes,toolbar=yes,menubar=no,location=no,directories=no, status=yes';
+  let imageWindow = open('view.html', 'Image view', options);
+
+  imageWindow.onload = function() {
+    imageWindow.document.getElementById('image').setAttribute('src', imageUrl);
+    imageWindow.addFavoriteImage = function() {
+      addFavoriteImage(imageUrl);
+    }
+  }
+  imageWindow.focus();
+}
+
+function onDeleteFavoriteImage(event) {
+  imageFavoriteUrls = imageFavoriteUrls.filter(function(imageUrl) {
+    return imageUrl !== event.target.getAttribute("imageUrl");
+  });
+  let imageWrapperNode = event.target.parentNode;
+  let favoriteImagesNode = imageWrapperNode.parentNode;
+  favoriteImagesNode.removeChild(imageWrapperNode);
+}
+
+function makeImageFavoriteNode(imageUrl) {
+  let imageWrapperNode = document.createElement("div");
+  imageWrapperNode.classList.add('image-wrapper');
+  let imageNode = document.createElement("img");
+  imageNode.setAttribute('src', imageUrl);
+  let deleteButtonNode = document.createElement("div");
+  deleteButtonNode.classList.add('delete-btn');
+  deleteButtonNode.textContent = 'Delete';
+  deleteButtonNode.setAttribute("imageUrl", imageUrl);
+  deleteButtonNode.addEventListener("click", onDeleteFavoriteImage);
+  imageWrapperNode.appendChild(imageNode);
+  imageWrapperNode.appendChild(deleteButtonNode);
+  return imageWrapperNode;
+}
+
+function updateFavoriteImagesView(urls) {
+  let favoriteImages = document.getElementById("photo-favorite").getElementsByClassName('container')[0];
+  let child = favoriteImages.lastElementChild;
+  while (child) {
+    favoriteImages.removeChild(child);
+    child = favoriteImages.lastElementChild;
+  }
+
+  for (let i = 0; i < urls.length; ++i) {
+    imageNode = makeImageFavoriteNode(urls[i]);
+    favoriteImages.appendChild(imageNode);
+  }
+}
+
+function updateListImagesView(showImages) {
   if (showImages !== undefined) {
     let imagesDOM = document.getElementById("list-images").children;
     for (let i = 0; i < imagesDOM.length; ++i) {
@@ -50,15 +110,15 @@ function updateShowListImage(showImages) {
 
 function onLeftNavClick() {
   let showImages = leftRotateImageList(imageUrls);
-  updateShowListImage(showImages);
+  updateListImagesView(showImages);
 }
 
 function onRightNavClick() {
   let showImages = rightRotateImageList(imageUrls);
-  updateShowListImage(showImages);
+  updateListImagesView(showImages);
 }
 
 function onShowMoreClick() {
   isShowMore = !isShowMore;
-  updateShowListImage()
+  updateListImagesView()
 }
