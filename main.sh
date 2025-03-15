@@ -1,4 +1,4 @@
-# repos="stupid-app Algorithm simple-calculator"
+# repos="Algorithm simple-calculator"
 
 repo=$1
 git remote add --fetch $repo git@gitlab.com:Magiskb0Y/$repo
