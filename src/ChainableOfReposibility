@@ -1,0 +1,49 @@
+interface HelpInterface {
+    public void getHelp(int helpConstant);
+}
+
+class FrontEnd implements HelpInterface {
+    final int FRONT_END_HELP_CONSTANT = 1;
+    HelpInterface successor;
+
+    public FrontEnd(HelpInterface s) {
+        this.successor = s;
+    }
+
+    public void getHelp(int helpConstant) {
+        if (helpConstant == FRONT_END_HELP_CONSTANT) {
+            System.out.println("I'm front end.");
+        }
+        else {
+            this.successor.getHelp(helpConstant);
+        }
+    }
+}
+
+class Intermediate implements HelpInterface {
+    final int  INTERMEDIATE_HELP_CONSTANT = 2;
+    HelpInterface successor;
+
+    public Intermediate(HelpInterface s) {
+        this.successor = s;
+    }
+
+    public void getHelp(int helpConstant) {
+        if (helpConstant == INTERMEDIATE_HELP_CONSTANT) {
+            System.out.println("I'm Intermediate.");
+        }
+        else {
+            this.successor.getHelp(helpConstant);
+        }
+    }
+}
+
+class Application implements HelpInterface {
+    public Application() {
+
+    }
+
+    public void getHelp(int helpConstant) {
+        System.out.println("I'm Application.");
+    }
+}
