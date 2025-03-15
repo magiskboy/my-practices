@@ -1,24 +1,68 @@
+<<<<<<< HEAD
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
 *$py.class
+=======
+# Created by https://www.gitignore.io
+
+.vscode
+media
+
+### OSX ###
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Icon must end with two \r
+Icon
+
+
+# Thumbnails
+._*
+
+# Files that might appear on external disk
+.Spotlight-V100
+.Trashes
+
+# Directories potentially created on remote AFP share
+.AppleDB
+.AppleDesktop
+Network Trash Folder
+Temporary Items
+.apdisk
+
+
+### Python ###
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+>>>>>>> django-app-deployment/master
 
 # C extensions
 *.so
 
 # Distribution / packaging
 .Python
+<<<<<<< HEAD
+=======
+env/
+>>>>>>> django-app-deployment/master
 build/
 develop-eggs/
 dist/
 downloads/
 eggs/
+<<<<<<< HEAD
 .eggs/
+=======
+>>>>>>> django-app-deployment/master
 lib/
 lib64/
 parts/
 sdist/
 var/
+<<<<<<< HEAD
 wheels/
 pip-wheel-metadata/
 share/python-wheels/
@@ -26,6 +70,11 @@ share/python-wheels/
 .installed.cfg
 *.egg
 MANIFEST
+=======
+*.egg-info/
+.installed.cfg
+*.egg
+>>>>>>> django-app-deployment/master
 
 # PyInstaller
 #  Usually these files are written by a python script from a template
@@ -40,6 +89,7 @@ pip-delete-this-directory.txt
 # Unit test / coverage reports
 htmlcov/
 .tox/
+<<<<<<< HEAD
 .nox/
 .coverage
 .coverage.*
@@ -49,11 +99,18 @@ coverage.xml
 *.cover
 .hypothesis/
 .pytest_cache/
+=======
+.coverage
+.cache
+nosetests.xml
+coverage.xml
+>>>>>>> django-app-deployment/master
 
 # Translations
 *.mo
 *.pot
 
+<<<<<<< HEAD
 # Django stuff:
 *.log
 local_settings.py
@@ -66,12 +123,15 @@ instance/
 # Scrapy stuff:
 .scrapy
 
+=======
+>>>>>>> django-app-deployment/master
 # Sphinx documentation
 docs/_build/
 
 # PyBuilder
 target/
 
+<<<<<<< HEAD
 # Jupyter Notebook
 .ipynb_checkpoints
 
@@ -121,3 +181,15 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+=======
+
+### Django ###
+*.log
+*.pot
+*.pyc
+__pycache__/
+local_settings.py
+
+.env
+db.sqlite3
+>>>>>>> django-app-deployment/master

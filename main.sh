@@ -1,4 +1,4 @@
-# repos="url-shortcut django-app-deployment stupid-app Algorithm simple-calculator"
+# repos="django-app-deployment stupid-app Algorithm simple-calculator"
 
 repo=$1
 git remote add --fetch $repo git@gitlab.com:Magiskb0Y/$repo
