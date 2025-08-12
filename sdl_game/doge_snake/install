@@ -1,0 +1,17 @@
+#!/bin/sh
+
+# brew install sdl2 sdl2_image sdl2_mixer sdl2_ttf
+
+gcc -o doge_snake main.cpp \
+    -D_THREAD_SAFE \
+    -lSDL2 \
+    -lSDL2_image \
+    -lSDL2_mixer \
+    -lSDL2_ttf \
+    -I/opt/homebrew/Cellar/sdl2/2.32.2/include \
+    -I/opt/homebrew/Cellar/sdl2_image/2.8.8/include \
+    -I/opt/homebrew/Cellar/sdl2_mixer/2.8.1_1/include \
+    -I/opt/homebrew/Cellar/sdl2_ttf/2.24.0/include \
+    -I/opt/homebrew/include/SDL2 \
+    -std=c++11
+
