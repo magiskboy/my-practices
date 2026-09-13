@@ -6,6 +6,8 @@ use axum::{Router, Json, extract::State, response::IntoResponse};
 use axum::routing::{get, post, put, delete};
 use serde::{Deserialize};
 use tokio::sync::Mutex;
+use sqlx::mysql::{MySqlPoolOptions};
+use sqlx;
 
 use crate::state::{AppState, Todo};
 
@@ -61,6 +63,13 @@ async fn update_todo(
 async fn get_todos(
     State(state): State<AppState>,
 ) ->Json<Vec<Todo>> {
+    let items = sqlx::query_as!(
+        Todo, 
+        r#"SELECT id, name, description, status, created_at FROM tb_todos"#
+    )
+    .fetch_all(state.db)
+    .await;
+
     let todos = state.todos.lock().await;
     Json(todos.clone())
 }
@@ -84,9 +93,15 @@ async fn delete_todo(
     }
 }
 
-pub fn make_app() -> Router {
+pub async fn make_app() -> Router {
+    let db_uri = "mysql://todo_rs:todo_rs@127.0.0.1:3306/todo_rs";
+    let db = MySqlPoolOptions::new()
+        .max_connections(5)
+        .connect(db_uri).await.unwrap();
+
     let state = AppState {
-        todos: Arc::new(Mutex::new(Vec::new()))
+        todos: Arc::new(Mutex::new(Vec::new())),
+        db: db,
     };
 
     return Router::new()

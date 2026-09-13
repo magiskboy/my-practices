@@ -1,0 +1,27 @@
+services:
+  db:
+    image: 'mysql:8'
+    environment:
+      MYSQL_ROOT_PASSWORD: 'root'
+      MYSQL_DATABASE: 'todo_rs'
+      MYSQL_USER: 'todo_rs'
+      MYSQL_PASSWORD: 'todo_rs'
+    volumes:
+      - './seed.sql:/docker-entrypoint-initdb.d/seed.sql'
+      - 'db:/var/lib/mysql'
+    ports:
+      - '3306:3306'
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: '256M'
+    networks:
+      - 'todo_rs'
+
+volumes:
+  db:
+
+networks:
+  todo_rs:
+

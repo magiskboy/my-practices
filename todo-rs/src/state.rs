@@ -1,17 +1,19 @@
-use std::sync::Arc;
 use uuid;
+use std::sync::Arc;
 use chrono::{DateTime, Utc};
 use serde::{Serialize, Deserialize};
 use tokio::sync::Mutex;
+use sqlx::{mysql::MySqlPool, FromRow, Type};
 
-#[derive(Deserialize, Serialize, Debug, Clone)]
+#[derive(Deserialize, Serialize, Debug, Clone, Type, PartialEq)]
+#[sqlx(type_name = "varchar", rename_all = "lowercase")]
 pub enum TodoStatus {
     New,
     Progress,
     Done,
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone, FromRow)]
 #[serde(rename_all = "camelCase")]
 pub struct Todo {
     pub id: uuid::Uuid,
@@ -35,5 +37,6 @@ impl Todo {
 
 #[derive(Clone)]
 pub struct AppState {
-    pub todos: Arc<Mutex<Vec<Todo>>>
+    pub todos: Arc<Mutex<Vec<Todo>>>,
+    pub db: MySqlPool,
 }
