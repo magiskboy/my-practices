@@ -1,4 +1,22 @@
 services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    platform: linux/amd64
+    ports:
+      - 3000:3000
+    environment:
+      APP_DB_URI: "mysql://todo_rs:todo_rs@db:3306/todo_rs"
+      APP_DB_MAX_CONNECTIONS: "5"
+      APP_BINDING_ADDR: "0.0.0.0:3000"
+    networks:
+      - 'todo_rs'
+    deploy:
+      resources:
+        limits:
+          cpus: "0.1"
+          memory: "128M"
   db:
     image: 'mysql:8'
     environment:
@@ -14,7 +32,7 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '0.5'
+          cpus: '0.2'
           memory: '256M'
     networks:
       - 'todo_rs'
