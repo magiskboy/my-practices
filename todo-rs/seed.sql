@@ -5,6 +5,7 @@ CREATE TABLE IF NOT EXISTS tb_todos (
     name VARCHAR(100) NOT NULL,
     description VARCHAR(500) DEFAULT "",
     status VARCHAR(10) NOT NULL DEFAULT "new",
+    is_deleted BOOLEAN NOT NULL DEFAULT FALSE,
     created_at DATETIME DEFAULT now()
 );
 

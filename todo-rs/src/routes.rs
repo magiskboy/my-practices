@@ -1,15 +1,46 @@
-use std::sync::Arc;
-
 use axum::extract::Path;
 use axum::http::StatusCode;
 use axum::{Router, Json, extract::State, response::IntoResponse};
 use axum::routing::{get, post, put, delete};
-use serde::{Deserialize};
-use tokio::sync::Mutex;
+use serde::{Deserialize, Serialize};
 use sqlx::mysql::{MySqlPoolOptions};
 use sqlx;
+use crate::state::{AppState, Todo, TodoStatus};
 
-use crate::state::{AppState, Todo};
+#[derive(Serialize)]
+enum AppError {
+    UnexpectedError(String),
+    TodoNotFound(uuid::fmt::Hyphenated),
+}
+
+#[derive(Serialize)]
+struct ErrorBody {
+    message: String,
+    code: &'static str,
+}
+
+impl IntoResponse for AppError {
+    fn into_response(self) -> axum::response::Response {
+        let (status, code, message) = match self {
+            AppError::UnexpectedError(msg) => (StatusCode::INTERNAL_SERVER_ERROR, "unexpected_error", msg),
+            AppError::TodoNotFound(id) => (StatusCode::NOT_FOUND, "todo_not_found", format!("Todo {} not found", id)),
+        };
+
+        (status, Json(ErrorBody{message, code})).into_response()
+    }
+}
+
+
+async fn get_todos(State(state): State<AppState>) -> Result<Json<Vec<Todo>>, AppError> {
+    let todos = sqlx::query_as::<sqlx::MySql, Todo>(
+        "SELECT id, name, description, status, created_at, is_deleted FROM tb_todos WHERE is_deleted = false"
+    )
+        .fetch_all(&state.db)
+        .await
+        .map_err(|err| AppError::UnexpectedError(err.to_string()))?;
+
+    Ok(Json(todos))
+}
 
 
 #[derive(Deserialize)]
@@ -21,15 +52,21 @@ struct CreateTodoDto {
 async fn create_todo(
     State(state): State<AppState>,
     Json(payload): Json<CreateTodoDto>
-) -> impl IntoResponse {
+) -> Result<Json<Todo>, AppError> {
     let mut todo = Todo::new();
     todo.name = payload.name;
     todo.description = payload.description;
-    let mut todos = state.todos.lock().await;
-    let todo_id = todo.id.to_string();
-    todos.push(todo);
+    let _ = sqlx::query::<sqlx::MySql>(
+        r#"INSERT INTO tb_todos (id, name, description) VALUES (?, ?, ?)"#
+    )
+        .bind(&todo.id)
+        .bind(&todo.name)
+        .bind(&todo.description)
+        .execute(&state.db)
+        .await
+        .map_err(|err| AppError::UnexpectedError(err.to_string()));
 
-    format!("Create a new todo successfully, ID = {}", todo_id)
+    Ok(Json(todo))
 }
 
 #[derive(Deserialize)]
@@ -37,60 +74,60 @@ async fn create_todo(
 struct UpdateTodoDto {
     name: String,
     description: String,
+    status: TodoStatus,
+    is_deleted: bool,
 }
 
 async fn update_todo(
     State(state): State<AppState>,
-    Path(id): Path<uuid::Uuid>,
+    Path(id): Path<uuid::fmt::Hyphenated>,
     Json(payload): Json<UpdateTodoDto>,
-) ->impl IntoResponse {
-    let mut todos = state.todos.lock().await;
-    let found = todos.iter_mut().find(|x| {
-        x.id == id
-    });
-
-    match found {
-        Some(item) => {
-            item.name = payload.name;
-            item.description = payload.description;
-            (StatusCode::OK, format!("Updated todo {} successfully", item.id)).into_response()
-        },
-        None => (StatusCode::NOT_FOUND, format!("Todo {} not found", id)).into_response()
-    }
-
-}
-
-async fn get_todos(
-    State(state): State<AppState>,
-) ->Json<Vec<Todo>> {
-    let items = sqlx::query_as!(
-        Todo, 
-        r#"SELECT id, name, description, status, created_at FROM tb_todos"#
+) -> Result<Json<Todo>, AppError> {
+    let _ = sqlx::query(
+        r#"UPDATE tb_todos SET name = ?, description = ?, status = ?, is_deleted = ? WHERE id = ? AND is_deleted = ?"#
     )
-    .fetch_all(state.db)
-    .await;
+        .bind(&payload.name)
+        .bind(&payload.description)
+        .bind(&payload.status)
+        .bind(&payload.is_deleted)
+        .bind(&id)
+        .bind(false)
+        .execute(&state.db)
+        .await
+        .map_err(|err| AppError::UnexpectedError(err.to_string()));
 
-    let todos = state.todos.lock().await;
-    Json(todos.clone())
+    let todo = sqlx::query_as::<sqlx::MySql, Todo>(
+        r#"SELECT id, name, description, status, created_at, is_deleted FROM tb_todos WHERE id = ? AND is_deleted = ?"#
+    )
+        .bind(&id)
+        .bind(false)
+        .fetch_optional(&state.db)
+        .await
+        .map_err(|err| AppError::UnexpectedError(err.to_string()))?
+        .ok_or_else(|| AppError::TodoNotFound(id.clone()))?;
+
+    Ok(Json(todo))
 }
 
+
+#[derive(Serialize)]
+struct DeletedTodoResponse {
+    message: String,
+}
 
 async fn delete_todo(
     State(state): State<AppState>,
-    Path(id): Path<uuid::Uuid>,
-) ->impl IntoResponse {
-    let mut todos = state.todos.lock().await;
-    let idx_op = todos.iter().position(|x| x.id == id);
+    Path(id): Path<uuid::fmt::Hyphenated>,
+) -> Result<Json<DeletedTodoResponse>, AppError>{
+    let _ = sqlx::query(
+        r#"UPDATE tb_todos SET is_deleted = true WHERE id = ?"#
+    )
+        .bind(id)
+        .execute(&state.db)
+        .await
+        .map_err(|err| AppError::UnexpectedError(err.to_string()));
 
-    match idx_op {
-        Some(deleted_idx) => {
-            let deleted = todos.remove(deleted_idx);
-            (StatusCode::OK, format!("Deleted {} successfully", deleted.id)).into_response()
-        },
-        None => {
-            (StatusCode::NOT_FOUND, format!("Todo {} not found", id)).into_response()
-        }
-    }
+    Ok(Json(DeletedTodoResponse { message: format!("Todo {} was deleted", id).to_string() }))
 }
 
 pub async fn make_app() -> Router {
@@ -100,7 +137,6 @@ pub async fn make_app() -> Router {
         .connect(db_uri).await.unwrap();
 
     let state = AppState {
-        todos: Arc::new(Mutex::new(Vec::new())),
         db: db,
     };
 
